@@ -1,4 +1,9 @@
-pip install -r requirements.txt
-pip install pyinstaller
+@echo off
+cd /d "%~dp0"
 
-pyinstaller --windowed --name Rify main.py 
+python -m pip install -r requirements.txt
+python -m pip install pyinstaller
+
+python -m PyInstaller --windowed --name Rify main.py
+
+pause 
