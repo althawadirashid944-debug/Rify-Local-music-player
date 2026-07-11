@@ -1,8 +1,9 @@
 import gi
-from pathlib import Path
+from pathlib import Path 
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk
+from gi.repository import Gtk 
+from gi.repository import GLib 
 
 from rify import get_songs, download_song
 from player import Player
@@ -19,8 +20,20 @@ class RifyWindow(Gtk.ApplicationWindow):
             orientation=Gtk.Orientation.VERTICAL,
             spacing=8
         )
-
+        self.seek = Gtk.Scale.new_with_range(
+            Gtk.Orientation.HORIZONTAL,
+            0,
+            100,
+            1,
+        )  
+        self.seek.set_draw_value(False)
+        self.main_box.append(self.seek) 
+        self.seek.connect("value-changed",self.on_seek) 
+       
         self.player = Player()
+        self.dragging = False 
+        GLib.timeout_add(500, self.update_seek) 
+
 
         self.songs = get_songs()
         print("Songs found:", len(self.songs))
@@ -68,9 +81,25 @@ class RifyWindow(Gtk.ApplicationWindow):
             self.play_selected
         )
 
-        self.set_child(self.main_box)
+        self.set_child(self.main_box) 
+    def drag_begin(self, *args):
+        self.dragging = True
+    def drag_end(self, *args):
+        self.dragging = False
 
-
+    def on_seek(self,scale):
+        self.player.player.time_pos = scale.get_value() 
+    
+    def update_seek(self):
+        if not self.dragging:
+          duration = self.player.player.duration
+          position = self.player.player.time_pos
+          if duration is not None :
+            self.seek.set_range(0, duration)
+          if position is not None:
+            self.seek.set_value(position)
+        return True 
+    
     def refresh_listbox(self):
         self.listbox.remove_all()
 
