@@ -2,14 +2,17 @@ import os
 import sys
 
 if sys.platform == "win32":
-    os.add_dll_directory(
-        os.path.join(
+    if getattr(sys, "frozen", False):
+        base = os.path.dirname(sys.executable)
+    else:
+        base = os.path.join(
             os.path.dirname(__file__),
             "runtime",
             "gtk",
             "bin"
         )
-    ) 
+
+    os.add_dll_directory(base) 
 
 
 
