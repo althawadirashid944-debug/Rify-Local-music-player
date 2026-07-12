@@ -13,10 +13,12 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.14"
+
 
       - name: Install MSYS2 GTK
         uses: msys2/setup-msys2@v2
@@ -27,6 +29,7 @@ jobs:
             mingw-w64-ucrt-x86_64-gtk4
             mingw-w64-ucrt-x86_64-python-gobject
 
+
       - name: Prepare GTK runtime
         shell: powershell
         run: |
@@ -35,24 +38,27 @@ jobs:
           xcopy C:\msys64\ucrt64\bin runtime\gtk\bin /E /I /Y
           xcopy C:\msys64\ucrt64\share runtime\gtk\share /E /I /Y
 
-      - name: Download mpv runtime
+
+      - name: Check mpv runtime
         shell: powershell
         run: |
-          mkdir runtime\mpv
+          if (!(Test-Path "runtime\mpv\mpv.7z")) {
+              Write-Error "mpv.7z missing!"
+              exit 1
+          }
 
-          curl.exe -L `
-          "https://github.com/shinchiro/mpv-winbuild-cmake/releases/latest/download/mpv-dev-x86_64-v3.7z" `
-          -o runtime\mpv\mpv.7z
 
       - name: Extract mpv
         shell: powershell
         run: |
           7z x runtime\mpv\mpv.7z -oruntime\mpv -y
 
+
       - name: Build Rify
         shell: powershell
         run: |
           .\build_windows.ps1
+
 
       - name: Package Rify
         shell: powershell
@@ -60,6 +66,7 @@ jobs:
           Compress-Archive `
           -Path dist\Rify `
           -DestinationPath Rify-Windows.zip
+
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
