@@ -1,0 +1,77 @@
+name: Build Rify Windows
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+
+  build-windows:
+
+    runs-on: windows-latest
+
+    steps:
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+
+      - name: Install MSYS2 GTK
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >-
+            mingw-w64-ucrt-x86_64-gtk4
+            mingw-w64-ucrt-x86_64-python-gobject
+
+
+      - name: Prepare GTK runtime
+        shell: powershell
+        run: |
+          mkdir runtime\gtk
+
+          xcopy C:\msys64\ucrt64\bin runtime\gtk\bin /E /I /Y
+          xcopy C:\msys64\ucrt64\share runtime\gtk\share /E /I /Y
+
+
+      - name: Download mpv runtime
+        shell: powershell
+        run: |
+          mkdir runtime\mpv
+
+          curl.exe -L `
+          "https://github.com/shinchiro/mpv-winbuild-cmake/releases/latest/download/mpv-dev-x86_64-v3.7z" `
+          -o runtime\mpv\mpv.7z
+
+
+      - name: Install 7zip
+        uses: milliewalky/setup-7-zip@v1
+
+
+      - name: Build Rify
+        shell: powershell
+        run: |
+          .\build_windows.ps1
+
+
+      - name: Package release
+        shell: powershell
+        run: |
+          Compress-Archive `
+          -Path dist\Rify `
+          -DestinationPath Rify-Windows.zip
+
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rify-Windows
+          path: Rify-Windows.zip
