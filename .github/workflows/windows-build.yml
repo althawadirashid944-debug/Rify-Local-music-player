@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v4
 
 
-      - name: Install MSYS2 GTK + Python
+      - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
@@ -26,16 +26,33 @@ jobs:
             mingw-w64-ucrt-x86_64-gtk4
 
 
-      - name: Prepare GTK runtime
+      - name: Prepare runtime folders
         shell: powershell
         run: |
-          New-Item -ItemType Directory -Force runtime\gtk | Out-Null
+          New-Item -ItemType Directory -Force runtime\gtk\bin | Out-Null
+          New-Item -ItemType Directory -Force runtime\gtk\share | Out-Null
+          New-Item -ItemType Directory -Force runtime\gtk\lib\girepository-1.0 | Out-Null
+          New-Item -ItemType Directory -Force runtime\mpv | Out-Null
+
+
+      - name: Copy GTK runtime
+        shell: powershell
+        run: |
 
           xcopy C:\msys64\ucrt64\bin runtime\gtk\bin /E /I /Y
+
           xcopy C:\msys64\ucrt64\share runtime\gtk\share /E /I /Y
 
+          xcopy C:\msys64\ucrt64\lib\girepository-1.0 runtime\gtk\lib\girepository-1.0 /E /I /Y
 
-      - name: Check mpv runtime
+
+      - name: Check GTK typelibs
+        shell: powershell
+        run: |
+          dir runtime\gtk\lib\girepository-1.0
+
+
+      - name: Extract mpv
         shell: powershell
         run: |
           if (!(Test-Path "runtime\mpv\mpv.7z")) {
@@ -43,19 +60,19 @@ jobs:
               exit 1
           }
 
-
-      - name: Extract mpv
-        shell: powershell
-        run: |
           7z x runtime\mpv\mpv.7z -oruntime\mpv -y
 
 
-      - name: Build Rify with MSYS2 Python
+      - name: Build Rify
         shell: msys2 {0}
         run: |
+
           python -m pip install --upgrade pip
+
           python -m pip install -r requirements.txt
+
           python -m pip install pyinstaller
+
 
           python -m PyInstaller \
             --windowed \
@@ -67,30 +84,49 @@ jobs:
             main.py
 
 
-      - name: Copy mpv DLLs
+      - name: Copy mpv
         shell: powershell
         run: |
+
           Copy-Item runtime\mpv\*.dll dist\Rify\ -ErrorAction SilentlyContinue
+
           Copy-Item runtime\mpv\**\*.dll dist\Rify\ -ErrorAction SilentlyContinue
 
 
-      - name: Copy GTK runtime
+      - name: Copy GTK files
         shell: powershell
         run: |
-          Copy-Item runtime\gtk\bin\*.dll dist\Rify\ -Recurse -Force -ErrorAction SilentlyContinue
 
-          Copy-Item runtime\gtk\share dist\Rify\share `
-            -Recurse `
+          New-Item -ItemType Directory -Force dist\Rify\bin | Out-Null
+          New-Item -ItemType Directory -Force dist\Rify\share | Out-Null
+          New-Item -ItemType Directory -Force dist\Rify\lib\girepository-1.0 | Out-Null
+
+
+          Copy-Item runtime\gtk\bin\*.dll `
+            dist\Rify\bin `
             -Force `
             -ErrorAction SilentlyContinue
+
+
+          Copy-Item runtime\gtk\share `
+            dist\Rify\share `
+            -Recurse `
+            -Force
+
+
+          Copy-Item runtime\gtk\lib\girepository-1.0 `
+            dist\Rify\lib\girepository-1.0 `
+            -Recurse `
+            -Force
 
 
       - name: Package Rify
         shell: powershell
         run: |
+
           Compress-Archive `
-          -Path dist\Rify\* `
-          -DestinationPath Rify-Windows.zip
+            -Path dist\Rify\* `
+            -DestinationPath Rify-Windows.zip
 
 
       - name: Upload artifact
