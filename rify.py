@@ -83,6 +83,21 @@ def play_index(index):
      player.play(songs[index]["path"]) 
 
 
+def build_library(songs):
+    library = {}
+
+    for song in songs:
+        path = Path(song["path"])
+
+        artist = path.parent.parent.name
+        album = path.parent.name
+
+        library.setdefault(artist, {})
+        library[artist].setdefault(album, [])
+
+        library[artist][album].append(song)
+
+    return library 
 
 
 
