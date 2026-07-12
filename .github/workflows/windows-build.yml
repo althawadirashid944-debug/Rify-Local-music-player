@@ -43,7 +43,7 @@ jobs:
 
           xcopy C:\msys64\ucrt64\share runtime\gtk\share /E /I /Y
 
-          xcopy C:\msys64\ucrt64\lib\girepository-1.0 runtime\gtk\lib\girepository-1.0 /E /I /Y
+          xcopy C:\msys64\ucrt64\share\girepository-1.0 runtime\gtk\share\girepository-1.0 /E /I /Y
 
 
       - name: Check GTK typelibs
