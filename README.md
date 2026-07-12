@@ -25,7 +25,4 @@ You may also asign a shortcut to the main.py file for easier access.
 Second way to install:
 Go into the packaging folder there will be 2 folders one for linux and one for windows.
 Linux users open the linux folder and run the .sh file (auto downloads dependencies)
-Windows users open the windows folder and run the .bat file (auto builds)
-IMPORTANT NOTE:
-For windows users make sure you have python and pyinstaller (go on google and search pyinstaller)
-After that run the .bat file in windows folder (this makes an exe file to run the music player)
+Currently there isnt a proper support for windows the release may or may not work 
